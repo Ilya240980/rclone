@@ -385,6 +385,10 @@ jobs:
       - name: x64 build
         run: go build -v -tags android -trimpath -ldflags '-s -X github.com/rclone/rclone/fs.Version='${VERSION} -o build/rclone-android-${RCLONE_NDK_VERSION}-x64 .
 
+      - name: Upload to github
+        run: |
+          make upload_github
+
       - name: Upload artifacts
         run: |
           make ci_upload
