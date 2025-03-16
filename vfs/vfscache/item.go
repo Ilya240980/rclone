@@ -606,6 +606,10 @@ func (item *Item) _store(ctx context.Context, storeFn StoreFn) (err error) {
 				fs.Errorf(name, "Writeback failed: %v", err)
 				return nil
 			}
+			if errors.Is(err, fs.Error403) {
+				fs.Errorf(name, "Remote 403 error responce: %v", err)
+				return nil
+			}
 			return fmt.Errorf("vfs cache: failed to transfer file from cache to remote: %w", err)
 		}
 		item.o = o
