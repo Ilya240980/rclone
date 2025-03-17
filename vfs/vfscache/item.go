@@ -604,11 +604,38 @@ func (item *Item) _store(ctx context.Context, storeFn StoreFn) (err error) {
 		if err != nil {
 			if errors.Is(err, fs.ErrorCantUploadEmptyFiles) {
 				fs.Errorf(name, "Writeback failed: %v", err)
+				// Mark as clean even though upload failed for empty files
+				item.info.Dirty = false
+				err2 := item._save()
+				if err2 != nil {
+					fs.Errorf(item.name, "vfs cache: failed to write metadata file: %v", err2)
+				}
 				return nil
 			}
 			if errors.Is(err, fs.Error403) {
-				fs.Errorf(name, "Remote 403 error response: %v", err)
+				fs.Errorf(name, "Remote 403 error response - marking clean to allow cache cleanup: %v", err)
+				// Mark as clean for permission errors
+				item.info.Dirty = false
+				err2 := item._save()
+				if err2 != nil {
+					fs.Errorf(item.name, "vfs cache: failed to write metadata file: %v", err2)
+				}
 				return nil
+			}
+
+			// Handle upload failures by checking error type
+			if fserrors.IsRetryError(err) || fserrors.ShouldRetry(err) {
+				// These are temporary errors, so keep the file dirty for retry
+				fs.Errorf(name, "Writeback failed with temporary error - will retry: %v", err)
+				return fmt.Errorf("vfs cache: failed to transfer file from cache to remote: %w", err)
+			}
+
+			// For permanent errors, log but mark as clean to allow cache cleanup
+			fs.Errorf(name, "Writeback failed with permanent error - marking clean to allow cache cleanup: %v", err)
+			item.info.Dirty = false
+			err2 := item._save()
+			if err2 != nil {
+				fs.Errorf(item.name, "vfs cache: failed to write metadata file: %v", err2)
 			}
 			return fmt.Errorf("vfs cache: failed to transfer file from cache to remote: %w", err)
 		}
