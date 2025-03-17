@@ -388,7 +388,7 @@ jobs:
       - name: Upload to github
         run: |
           make upload_github
-
+          GH_TOKEN: ${{ github.token }}
       - name: Upload artifacts
         run: |
           make ci_upload
