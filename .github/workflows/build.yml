@@ -386,9 +386,10 @@ jobs:
         run: go build -v -tags android -trimpath -ldflags '-s -X github.com/rclone/rclone/fs.Version='${VERSION} -o build/rclone-android-${RCLONE_NDK_VERSION}-x64 .
 
       - name: Upload to github
+        env:
+          GH_TOKEN: ${{ github.token }}
         run: |
           make upload_github
-          GH_TOKEN: ${{ github.token }}
       - name: Upload artifacts
         run: |
           make ci_upload
