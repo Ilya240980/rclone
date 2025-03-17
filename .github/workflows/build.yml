@@ -192,6 +192,9 @@ jobs:
         # working-directory: '$(modulePath)'
         # Deploy binaries if enabled in config && not a PR && not a fork
         if: env.RCLONE_CONFIG_PASS != '' && matrix.deploy && github.head_ref == '' && github.repository == 'rclone/rclone'
+      - name: Build tar ball
+        run: |
+          make tarball
       - name: Upload to github
         env:
           GH_TOKEN: ${{ github.token }}
