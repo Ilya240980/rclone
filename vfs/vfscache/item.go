@@ -681,6 +681,7 @@ func (item *Item) Close(storeFn StoreFn) (err error) {
 	var (
 		downloaders   *downloaders.Downloaders
 		syncWriteBack = item.c.opt.WriteBack <= 0
+		uploadError   error
 	)
 	item.mu.Lock()
 	defer item.mu.Unlock()
@@ -762,16 +763,52 @@ func (item *Item) Close(storeFn StoreFn) (err error) {
 		fs.Infof(item.name, "vfs cache: queuing for upload in %v", item.c.opt.WriteBack)
 		if syncWriteBack {
 			// do synchronous writeback
-			checkErr(item._store(context.Background(), storeFn))
+			uploadError = item._store(context.Background(), storeFn)
+			checkErr(uploadError)
+
+			// If there was a permanent error during upload and the file is now clean
+			// (because _store marked it as clean), remove it from the cache
+			if uploadError != nil && !item.info.Dirty &&
+				!fserrors.IsRetryError(uploadError) && !fserrors.ShouldRetry(uploadError) {
+				fs.Infof(item.name, "vfs cache: removing file from cache after permanent upload error: %v", uploadError)
+				item._removeFile("permanent upload error")
+				item._removeMeta("permanent upload error")
+			}
 		} else {
 			// asynchronous writeback
 			item.c.writeback.SetID(&item.writeBackID)
 			id := item.writeBackID
+
+			// For asynchronous writeback, we need to modify the writeback callback
+			// to remove the file if there's a permanent error
 			item.mu.Unlock()
 			item.c.writeback.Add(id, item.name, item.info.Size, item.modified, func(ctx context.Context) error {
-				return item.store(ctx, storeFn)
+				err := item.store(ctx, storeFn)
+
+				// If there was a permanent error, try to remove the file from cache
+				if err != nil && !fserrors.IsRetryError(err) && !fserrors.ShouldRetry(err) {
+					// We need to check if the file is still clean (not dirty) before removing
+					item.mu.Lock()
+					if !item.info.Dirty {
+						fs.Infof(item.name, "vfs cache: removing file from cache after permanent upload error: %v", err)
+						item._removeFile("permanent upload error (async)")
+						item._removeMeta("permanent upload error (async)")
+					}
+					item.mu.Unlock()
+				}
+
+				return err
 			})
 			item.mu.Lock()
+		}
+	} else {
+		// If the file is already clean but has a fingerprint of "" (which means it was
+		// never successfully uploaded), consider removing it as it might have been
+		// marked clean due to a permanent error in a previous attempt
+		if item.info.Fingerprint == "" && item._exists() {
+			fs.Infof(item.name, "vfs cache: removing file from cache that was marked clean but never uploaded")
+			item._removeFile("clean but never uploaded")
+			item._removeMeta("clean but never uploaded")
 		}
 	}
 
