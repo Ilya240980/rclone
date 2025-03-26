@@ -324,3 +324,12 @@ func (m *TempFileHandlingMode) Set(s string) error {
 func (m *TempFileHandlingMode) Type() string {
 	return "string"
 }
+
+// Register registers the VFS options
+func Register() {
+	fs.Register(&fs.RegInfo{
+		Name:    "vfs",
+		Opt:     &Opt,
+		Options: OptionsInfo,
+	})
+}
