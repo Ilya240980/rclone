@@ -56,6 +56,7 @@ type File struct {
 	nwriters         atomic.Int32                    // len(writers)
 	appendMode       bool                            // file was opened with O_APPEND
 	isLink           bool                            // file represents a symlink
+	readers          []Handle                        // readers for this file
 }
 
 // newFile creates a new File
@@ -660,46 +661,123 @@ func (f *File) Sync() error {
 	return nil
 }
 
-// Remove the file
-func (f *File) Remove() (err error) {
-	defer log.Trace(f.Path(), "")("err=%v", &err)
-	f.mu.RLock()
-	d := f.d
-	f.mu.RUnlock()
+// isTemporaryFile checks if the file appears to be a temporary office file
+func isTemporaryFile(name string) bool {
+	name = strings.ToLower(name)
+	return strings.HasPrefix(name, "~$") || // MS Office temp files
+		strings.HasPrefix(name, ".~") || // LibreOffice temp files
+		strings.Contains(name, "~tmp") || // Generic temp files
+		(strings.HasPrefix(name, "~") && strings.HasSuffix(name, ".tmp")) || // Word temp
+		strings.HasSuffix(name, ".tmp") || // Generic temp
+		strings.HasSuffix(name, ".temporary") ||
+		strings.HasSuffix(name, ".temp")
+}
 
-	if d.vfs.Opt.ReadOnly {
-		return EROFS
-	}
+// safeRemove attempts to remove a file safely, checking if it's in use
+func (f *File) safeRemove(ctx context.Context) error {
+	const (
+		maxAttempts = 5
+		retryDelay  = 100 * time.Millisecond
+		maxDelay    = 2 * time.Second
+	)
 
-	// Remove the object from the cache
-	wasWriting := false
-	if d.vfs.cache != nil && d.vfs.cache.Exists(f.CachePath()) {
-		wasWriting = d.vfs.cache.Remove(f.CachePath())
-	}
+	var lastErr error
+	delay := retryDelay
 
-	f.muRW.Lock() // muRW must be locked before mu to avoid
-	f.mu.Lock()   // deadlock in RWFileHandle.openPending and .close
-	if f.o != nil {
-		err = f.o.Remove(context.TODO())
-	}
-	f.mu.Unlock()
-	f.muRW.Unlock()
-	if err != nil {
-		if wasWriting {
-			// Ignore error deleting file if was writing it as it may not be uploaded yet
-			err = nil
-			fs.Debugf(f._path(), "Ignoring File.Remove file error as uploading: %v", err)
-		} else {
-			fs.Debugf(f._path(), "File.Remove file error: %v", err)
+	for attempt := 0; attempt < maxAttempts; attempt++ {
+		// Check if file is in use
+		f.mu.Lock()
+		inUse := f.nwriters.Load() > 0 || len(f.readers) > 0
+		f.mu.Unlock()
+
+		if !inUse {
+			if f.o == nil {
+				return nil // файл уже удален
+			}
+			// Try to remove the file
+			err := f.o.Remove(ctx)
+			if err == nil {
+				f.mu.Lock()
+				f.o = nil
+				f.mu.Unlock()
+				return nil
+			}
+			lastErr = err
+
+			// Check if it's a sharing violation or similar
+			if isFileLockError(err) {
+				// Wait and retry
+				time.Sleep(delay)
+				delay *= 2
+				if delay > maxDelay {
+					delay = maxDelay
+				}
+				continue
+			}
+			// If it's not a sharing violation, return the error
+			return err
+		}
+
+		// If file is in use, wait before retry
+		time.Sleep(delay)
+		delay *= 2
+		if delay > maxDelay {
+			delay = maxDelay
 		}
 	}
 
-	// Remove the item from the directory listing
-	// called with File.mu released when there is no error removing the underlying file
-	if err == nil {
-		d.delObject(f.Name())
+	if lastErr != nil {
+		return fmt.Errorf("failed to remove temporary file after %d attempts: %w", maxAttempts, lastErr)
 	}
-	return err
+	return fmt.Errorf("file is still in use after %d attempts", maxAttempts)
+}
+
+// isFileLockError checks if the error is related to file locking
+func isFileLockError(err error) bool {
+	if err == nil {
+		return false
+	}
+	errStr := err.Error()
+	return strings.Contains(errStr, "sharing violation") ||
+		strings.Contains(errStr, "text file busy") ||
+		strings.Contains(errStr, "device or resource busy") ||
+		strings.Contains(errStr, "permission denied") ||
+		os.IsPermission(err)
+}
+
+// Remove the file
+func (f *File) Remove() (err error) {
+	defer log.Trace(f.Path(), "")("err=%v", &err)
+
+	if f.d.vfs.Opt.ReadOnly {
+		return EROFS
+	}
+
+	// Special handling for temporary files
+	if f.d.vfs.Opt.TempFileHandling == vfscommon.TempFileSafe && isTemporaryFile(f.Name()) {
+		return f.safeRemove(context.Background())
+	}
+
+	f.mu.Lock()
+	defer f.mu.Unlock()
+
+	if f.nwriters.Load() > 0 || len(f.readers) > 0 {
+		return fmt.Errorf("can't remove file - file is in use")
+	}
+
+	// Remove from cache if needed
+	if f.d.vfs.cache != nil {
+		f.d.vfs.cache.Remove(f._cachePath())
+	}
+
+	if f.o != nil {
+		err := f.o.Remove(context.Background())
+		if err != nil {
+			return err
+		}
+		f.o = nil
+	}
+	return nil
 }
 
 // RemoveAll the file - same as remove for files

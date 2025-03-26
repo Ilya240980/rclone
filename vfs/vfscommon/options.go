@@ -2,11 +2,15 @@ package vfscommon
 
 import (
 	"context"
+	"fmt"
 	"os"
 	"runtime"
+	"strings"
 	"time"
 
 	"github.com/rclone/rclone/fs"
+	"github.com/rclone/rclone/fs/config/flags"
+	"github.com/spf13/pflag"
 )
 
 // OptionsInfo describes the Options in use
@@ -169,6 +173,10 @@ var OptionsInfo = fs.Options{{
 
 func init() {
 	fs.RegisterGlobalOptions(fs.OptionsInfo{Name: "vfs", Opt: &Opt, Options: OptionsInfo})
+	flags.VarP(&Opt.TempFileHandling, "vfs-temp-handling", "",
+		`How to handle temporary files (normal|safe|aggressive)`, "VFS")
+	flags.DurationVarP(pflag.CommandLine, &Opt.TempFileTimeout, "vfs-temp-timeout", "",
+		DefaultOpt.TempFileTimeout, "How long to wait before forcing temporary file removal", "VFS")
 }
 
 // Options is options for creating the vfs
@@ -204,10 +212,51 @@ type Options struct {
 	UsedIsSize         bool          `config:"vfs_used_is_size"`     // if true, use the `rclone size` algorithm for Used size
 	FastFingerprint    bool          `config:"vfs_fast_fingerprint"` // if set use fast fingerprints
 	DiskSpaceTotalSize fs.SizeSuffix `config:"vfs_disk_space_total_size"`
+	// TempFileHandling controls how temporary files are handled
+	TempFileHandling TempFileHandlingMode `json:"temp_file_handling"`
+	// TempFileTimeout is how long to wait before forcibly removing temporary files
+	TempFileTimeout time.Duration `json:"temp_file_timeout"`
 }
 
-// Opt is the default options modified by the environment variables and command line flags
-var Opt Options
+// DefaultOpt is the default values for all the options
+var DefaultOpt = Options{
+	NoSeek:             false,
+	NoChecksum:         false,
+	ReadOnly:           false,
+	Links:              false,
+	NoModTime:          false,
+	DirCacheTime:       fs.Duration(5 * 60 * time.Second),
+	Refresh:            false,
+	PollInterval:       fs.Duration(time.Minute),
+	Umask:              FileMode(getUmask()),
+	UID:                getUID(),
+	GID:                getGID(),
+	DirPerms:           FileMode(0777),
+	FilePerms:          FileMode(0666),
+	LinkPerms:          FileMode(0666),
+	ChunkSize:          128 * fs.Mebi,
+	ChunkSizeLimit:     fs.SizeSuffix(-1),
+	ChunkStreams:       0,
+	CacheMode:          CacheModeOff,
+	CacheMaxAge:        fs.Duration(3600 * time.Second),
+	CacheMaxSize:       fs.SizeSuffix(-1),
+	CacheMinFreeSpace:  fs.SizeSuffix(-1),
+	CachePollInterval:  fs.Duration(60 * time.Second),
+	CaseInsensitive:    runtime.GOOS == "windows" || runtime.GOOS == "darwin",
+	BlockNormDupes:     false,
+	WriteWait:          fs.Duration(1000 * time.Millisecond),
+	ReadWait:           fs.Duration(20 * time.Millisecond),
+	WriteBack:          fs.Duration(5 * time.Second),
+	ReadAhead:          0 * fs.Mebi,
+	UsedIsSize:         false,
+	FastFingerprint:    false,
+	DiskSpaceTotalSize: fs.SizeSuffix(-1),
+	TempFileHandling:   TempFileSafe,
+	TempFileTimeout:    5 * time.Minute,
+}
+
+// Opt contains all the options
+var Opt = DefaultOpt
 
 // Init the options, making sure everything is within range
 func (opt *Options) Init() {
@@ -228,4 +277,50 @@ func (opt *Options) Init() {
 
 	// Make sure links are returned as links
 	opt.LinkPerms |= FileMode(os.ModeSymlink)
+}
+
+// TempFileHandlingMode controls how temporary files are handled
+type TempFileHandlingMode int
+
+const (
+	// TempFileNormal - handle temporary files normally
+	TempFileNormal TempFileHandlingMode = iota
+	// TempFileSafe - handle temporary files more safely
+	TempFileSafe
+	// TempFileAggressive - handle temporary files aggressively
+	TempFileAggressive
+)
+
+// String converts the TempFileHandlingMode to a string
+func (m TempFileHandlingMode) String() string {
+	switch m {
+	case TempFileNormal:
+		return "normal"
+	case TempFileSafe:
+		return "safe"
+	case TempFileAggressive:
+		return "aggressive"
+	default:
+		return "unknown"
+	}
+}
+
+// Set a TempFileHandlingMode from a string
+func (m *TempFileHandlingMode) Set(s string) error {
+	switch strings.ToLower(s) {
+	case "normal":
+		*m = TempFileNormal
+	case "safe":
+		*m = TempFileSafe
+	case "aggressive":
+		*m = TempFileAggressive
+	default:
+		return fmt.Errorf("unknown temp file handling mode %q", s)
+	}
+	return nil
+}
+
+// Type returns the type of this option
+func (m *TempFileHandlingMode) Type() string {
+	return "string"
 }
