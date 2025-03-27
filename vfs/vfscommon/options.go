@@ -327,9 +327,5 @@ func (m *TempFileHandlingMode) Type() string {
 
 // Register registers the VFS options
 func Register() {
-	fs.RegisterGlobalOptions(fs.OptionsInfo{
-		Name:    "vfs",
-		Opt:     &Opt,
-		Options: OptionsInfo,
-	})
+	// This function can be removed since we're handling registration in init()
 }
