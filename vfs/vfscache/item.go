@@ -874,30 +874,20 @@ func (item *Item) _checkObject(o fs.Object) error {
 			} else {
 				fs.Debugf(item.name, "vfs cache: remote object has gone but local object modified - keeping it")
 			}
-			//} else {
-			// no remote object && no local object
-			// OK
 		}
-	} else {
+	} else if item.info.Fingerprint != "" {
+		// remote object && local object
 		remoteFingerprint := fs.Fingerprint(context.TODO(), o, item.c.opt.FastFingerprint)
 		fs.Debugf(item.name, "vfs cache: checking remote fingerprint %q against cached fingerprint %q", remoteFingerprint, item.info.Fingerprint)
-		if item.info.Fingerprint != "" {
-			// remote object && local object
-			if remoteFingerprint != item.info.Fingerprint {
-				if !item.info.Dirty {
-					fs.Debugf(item.name, "vfs cache: removing cached entry as stale (remote fingerprint %q != cached fingerprint %q)", remoteFingerprint, item.info.Fingerprint)
-					item._remove("stale (remote is different)")
-					item.info.Fingerprint = remoteFingerprint
-				} else {
-					fs.Debugf(item.name, "vfs cache: remote object has changed but local object modified - keeping it (remote fingerprint %q != cached fingerprint %q)", remoteFingerprint, item.info.Fingerprint)
-				}
+		if remoteFingerprint != item.info.Fingerprint {
+			if !item.info.Dirty {
+				fs.Debugf(item.name, "vfs cache: removing cached entry as stale (remote fingerprint %q != cached fingerprint %q)", remoteFingerprint, item.info.Fingerprint)
+				item._remove("stale (remote is different)")
+				item.info.Fingerprint = remoteFingerprint
+			} else {
+				fs.Debugf(item.name, "vfs cache: remote object has changed but local object modified - keeping it")
 			}
-		} else {
-			// remote object && no local object
-			// Set fingerprint
-			item.info.Fingerprint = remoteFingerprint
 		}
-		item.info.Size = o.Size()
 	}
 	item.o = o
 

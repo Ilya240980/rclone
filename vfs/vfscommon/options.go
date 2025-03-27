@@ -172,7 +172,17 @@ var OptionsInfo = fs.Options{{
 }}
 
 func init() {
-	fs.RegisterGlobalOptions(fs.OptionsInfo{Name: "vfs", Opt: &Opt, Options: OptionsInfo})
+	// Сначала регистрируем группу VFS
+	flags.AddGroup("VFS", "VFS Options")
+
+	// Затем регистрируем глобальные опции
+	fs.RegisterGlobalOptions(fs.OptionsInfo{
+		Name:     "vfs",
+		Opt:      &Opt,
+		Options:  OptionsInfo,
+	})
+
+	// И после этого регистрируем флаги
 	flags.VarP(&Opt.TempFileHandling, "vfs-temp-handling", "",
 		`How to handle temporary files (normal|safe|aggressive)`, "VFS")
 	flags.DurationVarP(pflag.CommandLine, &Opt.TempFileTimeout, "vfs-temp-timeout", "",
@@ -325,7 +335,7 @@ func (m *TempFileHandlingMode) Type() string {
 	return "string"
 }
 
-// Register registers the VFS options
+// Register можно удалить, так как регистрация происходит в init()
 func Register() {
-	// This function can be removed since we're handling registration in init()
+	// Эта функция может быть удалена
 }
