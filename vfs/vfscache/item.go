@@ -973,8 +973,8 @@ func (item *Item) remove(reason string) (wasWriting bool) {
 	return item._remove(reason)
 }
 
-// RemoveNotInUse is called to remove cache file that has not been accessed recently
-// It may also be called for removing empty cache files too when the quota is already reached.
+// RemoveNotInUse вызывается для удаления файла кэша, который не использовался недавно
+// Также может быть вызван для удаления пустых файлов кэша, когда квота уже достигнута.
 func (item *Item) RemoveNotInUse(maxAge time.Duration, emptyOnly bool) (removed bool, spaceFreed int64) {
 	item.mu.Lock()
 	defer item.mu.Unlock()
@@ -988,11 +988,10 @@ func (item *Item) RemoveNotInUse(maxAge time.Duration, emptyOnly bool) (removed 
 
 	removeIt := false
 	if maxAge == 0 {
-		removeIt = true // quota-driven removal
-	}
-	if maxAge != 0 {
+		removeIt = true // удаление по квоте
+	} else if maxAge != 0 {
 		cutoff := time.Now().Add(-maxAge)
-		// If not locked and access time too long ago - delete the file
+		// Если не заблокирован и время доступа слишком давно - удалить файл
 		accessTime := item.info.ATime
 		if accessTime.Sub(cutoff) <= 0 {
 			removeIt = true
