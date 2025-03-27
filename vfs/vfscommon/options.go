@@ -173,13 +173,13 @@ var OptionsInfo = fs.Options{{
 
 func init() {
 	// Сначала регистрируем группу VFS
-	flags.AddGroup("VFS", "VFS Options")
+	flags.All.NewGroup("VFS", "VFS Options")
 
 	// Затем регистрируем глобальные опции
 	fs.RegisterGlobalOptions(fs.OptionsInfo{
-		Name:     "vfs",
-		Opt:      &Opt,
-		Options:  OptionsInfo,
+		Name:    "vfs",
+		Opt:     &Opt,
+		Options: OptionsInfo,
 	})
 
 	// И после этого регистрируем флаги
