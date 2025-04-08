@@ -64,6 +64,9 @@ func rcBisync(ctx context.Context, in rc.Params) (out rc.Params, err error) {
 	if opt.Resilient, err = in.GetBool("resilient"); rc.NotErrParamNotFound(err) {
 		return
 	}
+	if opt.Recover, err = in.GetBool("recover"); rc.NotErrParamNotFound(err) {
+		return
+	}
 
 	if opt.CheckFilename, err = in.GetString("checkFilename"); rc.NotErrParamNotFound(err) {
 		return
