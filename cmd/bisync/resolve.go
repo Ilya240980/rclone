@@ -238,7 +238,7 @@ func SuffixName(ctx context.Context, remote, suffix string) string {
 	if suffix == "" {
 		return remote
 	}
-	ci := fs.GetConfig(ctx)
+//	ci := fs.GetConfig(ctx)
 //	if ci.SuffixKeepExtension {
 		var (
 			base  = remote
