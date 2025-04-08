@@ -239,7 +239,7 @@ func SuffixName(ctx context.Context, remote, suffix string) string {
 		return remote
 	}
 	ci := fs.GetConfig(ctx)
-	if ci.SuffixKeepExtension {
+//	if ci.SuffixKeepExtension {
 		var (
 			base  = remote
 			exts  = ""
@@ -258,8 +258,8 @@ func SuffixName(ctx context.Context, remote, suffix string) string {
 			ext = path.Ext(base)
 		}
 		return base + suffix + exts
-	}
-	return remote + suffix
+//	}
+//	return remote + suffix
 }
 
 // NotEmpty checks whether set is not empty
