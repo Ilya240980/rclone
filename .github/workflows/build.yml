@@ -26,7 +26,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        job_name: ['linux', 'linux_386', 'mac_amd64', 'mac_arm64', 'windows', 'other_os', 'go1.21', 'go1.22']
+        job_name: ['linux', 'windows', 'go1.21', 'go1.22']
 
         include:
           - job_name: linux
@@ -46,23 +46,7 @@ jobs:
             goarch: 386
             gotags: cmount
             quicktest: true
-
-          - job_name: mac_amd64
-            os: macos-latest
-            go: '>=1.23.0-rc.1'
-            gotags: 'cmount'
-            build_flags: '-include "^darwin/amd64" -cgo'
-            quicktest: true
-            racequicktest: true
-            deploy: true
-
-          - job_name: mac_arm64
-            os: macos-latest
-            go: '>=1.23.0-rc.1'
-            gotags: 'cmount'
-            build_flags: '-include "^darwin/arm64" -cgo -macos-arch arm64 -cgo-cflags=-I/usr/local/include -cgo-ldflags=-L/usr/local/lib'
-            deploy: true
-
+          
           - job_name: windows
             os: windows-latest
             go: '>=1.23.0-rc.1'
@@ -71,13 +55,6 @@ jobs:
             build_flags: '-include "^windows/"'
             build_args: '-buildmode exe'
             quicktest: true
-            deploy: true
-
-          - job_name: other_os
-            os: ubuntu-latest
-            go: '>=1.23.0-rc.1'
-            build_flags: '-exclude "^(windows/|darwin/|linux/)"'
-            compile_all: true
             deploy: true
 
           - job_name: go1.21
@@ -210,12 +187,16 @@ jobs:
         run: |
           if [[ "${{ matrix.os }}" == "ubuntu-latest" ]]; then make release_dep_linux ; fi
           make ci_beta
-        env:
-          RCLONE_CONFIG_PASS: ${{ secrets.RCLONE_CONFIG_PASS }}
+        #env:
+         # RCLONE_CONFIG_PASS: ${{ secrets.RCLONE_CONFIG_PASS }}
         # working-directory: '$(modulePath)'
         # Deploy binaries if enabled in config && not a PR && not a fork
-        if: env.RCLONE_CONFIG_PASS != '' && matrix.deploy && github.head_ref == '' && github.repository == 'rclone/rclone'
-
+        #if: env.RCLONE_CONFIG_PASS != '' && matrix.deploy && github.head_ref == '' && github.repository == 'rclone/rclone'
+      - name: Upload to github
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          make upload_github
   lint:
     if: inputs.manual || (github.repository == 'rclone/rclone' && (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name != github.event.pull_request.base.repo.full_name))
     timeout-minutes: 30
@@ -384,7 +365,7 @@ jobs:
 
       - name: x64 build
         run: go build -v -tags android -trimpath -ldflags '-s -X github.com/rclone/rclone/fs.Version='${VERSION} -o build/rclone-android-${RCLONE_NDK_VERSION}-x64 .
-
+      
       - name: Upload artifacts
         run: |
           make ci_upload
