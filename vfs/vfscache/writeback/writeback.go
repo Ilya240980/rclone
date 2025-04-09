@@ -376,7 +376,7 @@ func (wb *WriteBack) upload(ctx context.Context, wbItem *writeBackItem) {
 		} else {
 			fs.Errorf(wbItem.name, "vfs cache: failed to upload try #%d, will retry in %v: %v", wbItem.tries, wbItem.delay, err)
 		}
-		if wbItem > 2 {
+		if wbItem.tries > 2 {
 			fs.Infof(wbItem.name, "vfs cache: to many upload try #%d, uploaded will be cancel", wbItem.tries)
 		    // show that we are done with the item
 		    wb._delItem(wbItem)
