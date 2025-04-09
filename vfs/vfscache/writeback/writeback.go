@@ -376,9 +376,15 @@ func (wb *WriteBack) upload(ctx context.Context, wbItem *writeBackItem) {
 		} else {
 			fs.Errorf(wbItem.name, "vfs cache: failed to upload try #%d, will retry in %v: %v", wbItem.tries, wbItem.delay, err)
 		}
-		// push the item back on the queue for retry
-		wb._pushItem(wbItem)
-		wb.items._update(wbItem, time.Now().Add(wbItem.delay))
+		if wbItem > 2 {
+			fs.Infof(wbItem.name, "vfs cache: to many upload try #%d, uploaded will be cancel", wbItem.tries)
+		    // show that we are done with the item
+		    wb._delItem(wbItem)
+		} else {
+		    // push the item back on the queue for retry
+		    wb._pushItem(wbItem)
+		    wb.items._update(wbItem, time.Now().Add(wbItem.delay))
+		}	
 	} else {
 		fs.Infof(wbItem.name, "vfs cache: upload succeeded try #%d", wbItem.tries)
 		// show that we are done with the item
