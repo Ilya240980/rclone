@@ -614,8 +614,8 @@ func (item *Item) _store(ctx context.Context, storeFn StoreFn) (err error) {
 		            fs.Errorf(item.name, "vfs cache: failed to write metadata file: %v", err)
 	            }
 				removeErr := item.c.Remove(item.name)
-		        if !removeErr {
-			        fs.Errorf(item.name, "vfs cache: failed to remove from virtual FS: %v", removeErr)
+		        if removeErr {
+			        fs.Errorf(item.name, "vfs cache: failed to remove from virtual FS:")
 		        }
 				return nil	
 		//    }		
