@@ -606,17 +606,19 @@ func (item *Item) _store(ctx context.Context, storeFn StoreFn) (err error) {
 				fs.Errorf(name, "Writeback failed: %v", err)
 				return nil
 			}
-		//    if errors.Is(err, fs.Error403) {
+		    if errors.Is(err, fs.Error403) {
+				fs.Infof(item.name, "Remote 403 error")
+			}
+			if item._exists() {
+				fs.Infof(item.name, "Item exist = true")
+			}	
 				fs.Errorf(name, "Remote 403 error response - marking clean to allow cache cleanup: %v", err)
 				item.info.Dirty = false
 	            err = item._save()
 	            if err != nil {
 		            fs.Errorf(item.name, "vfs cache: failed to write metadata file: %v", err)
 	            }
-				removeErr := item.c.Remove(item.name)
-		        if removeErr {
-			        fs.Errorf(item.name, "vfs cache: failed to remove from virtual FS:")
-		        }
+			
 				return nil	
 		//    }		
 		//	return fmt.Errorf("vfs cache: failed to transfer file from cache to remote: %w", err)
