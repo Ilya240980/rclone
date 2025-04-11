@@ -606,11 +606,11 @@ func (item *Item) _store(ctx context.Context, storeFn StoreFn) (err error) {
 				fs.Errorf(name, "Writeback failed: %v", err)
 				return nil
 			}
-		    if errors.Is(err, fs.Error403) {
+		    if err == fs.Error403 {
 				fs.Infof(item.name, "Remote 403 error")
 			}
 			if item._exists() {
-				fs.Infof(item.name, "Item exist = true")
+				fs.Infof(item.info, "Item exist = true")
 			}	
 				fs.Errorf(name, "Remote 403 error response - marking clean to allow cache cleanup: %v", err)
 				item.info.Dirty = false
