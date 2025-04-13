@@ -70,7 +70,7 @@ type Cache struct {
 //
 // This is used when reloading the Cache and uploading items need to
 // go into the directory tree.
-
+type AddVirtualFn func(remote string, size int64, isDir bool) error
 
 // New creates a new cache hierarchy for fremote
 //
@@ -899,3 +899,4 @@ func (c *Cache) AddVirtual(remote string, size int64, isDir bool) error {
 	}
 	return c.avFn(remote, size, isDir)
 }
+
