@@ -609,16 +609,17 @@ func (item *Item) _store(ctx context.Context, storeFn StoreFn) (err error) {
 		    if err.Error() == "403 Forbidden" {
 				fs.Infof(item.name, "vfs cache: Remote return 403 error")
 				fs.Errorf(name, "vfs cache: Remote 403 error response, marking file clean to allow cache cleanup: %v", err)
-				//item.info.Dirty = false
-	            //err = item._save()
-	            //if err != nil {
-		        //    fs.Errorf(item.name, "vfs cache: failed to write metadata file: %v", err)
-	            //}
+				item.info.Dirty = false
+	            err = item._save()
+	            if err != nil {
+		            fs.Errorf(item.name, "vfs cache: failed to write metadata file: %v", err)
+	            }
 				// delete virtual dir entry
-				err = item.c.DelVirtual(item.name)
-				if err != nil {
-					return fmt.Errorf("Remove: failed to delete virtual dir entry: %w", err)
-				}	
+				path := item.c.DelVirtual(item.name)
+				fs.Infof(item.name, "vfs file path: %v", path)
+			//	if err != nil {
+			//		return fmt.Errorf("Remove: failed to delete virtual dir entry: %w", err)
+			//	}	
 				return nil	
 		    }		
 			return fmt.Errorf("vfs cache: failed to transfer file from cache to remote: %w", err)
