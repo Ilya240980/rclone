@@ -73,7 +73,7 @@ type Cache struct {
 // go into the directory tree.
 type AddVirtualFn func(remote string, size int64, isDir bool) error
 
-type DelVirtualFn func() string
+type DelVirtualFn func(remote string) string
 
 // New creates a new cache hierarchy for fremote
 //
@@ -905,5 +905,5 @@ func (c *Cache) AddVirtual(remote string, size int64, isDir bool) error {
 }
 
 func (c *Cache) DelVirtual(remote string) string {
-	return c.dvFn()
+	return c.dvFn(remote)
 }

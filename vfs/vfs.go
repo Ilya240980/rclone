@@ -426,8 +426,8 @@ func (vfs *VFS) Root() (*Dir, error) {
 }
 
 // Root returns the root node
-func (vfs *VFS) RootPath() string {
-	fs.Debugf(vfs.f, "Root()")
+func (vfs *VFS) RootPath(remote staring) string {
+	fs.Debugf(vfs.f, "Root() %v", os.Stat(remote))
 	return vfs.root.Path()
 }
 
