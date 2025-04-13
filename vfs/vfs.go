@@ -432,7 +432,7 @@ func (vfs *VFS) RootPath(remote staring) error {
 	if err != nil {
 		fs.Errorf(vfs.f, "Delete file failed: %v", err)      	
 	}	
-return nil
+    return nil
 }
 
 
