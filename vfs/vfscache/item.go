@@ -615,9 +615,9 @@ func (item *Item) _store(ctx context.Context, storeFn StoreFn) (err error) {
 		            fs.Errorf(item.name, "vfs cache: failed to write metadata file: %v", err)
 	            }
 				// delete virtual dir entry
-				errdv = item.c.DelVirtual(item.name)
+				err = item.c.DelVirtual(item.name)
 				if err != nil {
-					return fmt.Errorf("Remove: failed to delete virtual dir entry: %w", errdv)
+					return fmt.Errorf("Remove: failed to delete virtual dir entry: %w", err)
 				}	
 				return nil	
 		    }		
