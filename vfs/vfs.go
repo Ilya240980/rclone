@@ -431,6 +431,7 @@ func (vfs *VFS) RootPath(remote staring) string {
 	err:= os.Remove(remote)
 	if err != nil {
 		fs.Errorf(vfs.f, "Delete file failed: %v", err)      	
+	}	
 return nil
 }
 
