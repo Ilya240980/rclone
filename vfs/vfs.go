@@ -426,7 +426,7 @@ func (vfs *VFS) Root() (*Dir, error) {
 }
 
 // Root returns the root node
-func (vfs *VFS) RootPath(remote staring) error {
+func (vfs *VFS) RootPath(remote string) error {
 	fs.Debugf(vfs.f, "File to delete %v", remote)
 	err:= os.Remove(remote)
 	if err != nil {
