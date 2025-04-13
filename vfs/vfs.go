@@ -426,19 +426,14 @@ func (vfs *VFS) Root() (*Dir, error) {
 }
 
 // Root returns the root node
-func (vfs *VFS) RootPath(remote string) error {
+func (vfs *VFS) RootPath(remote string) err error {
 	fs.Debugf(vfs.f, "File to delete %v", remote)
 	//err:= os.Remove(remote)
 	//if err != nil {
 	//	fs.Errorf(vfs.f, "Delete file failed: %v", err)      	
 	//}	
 	node := vfs.root
-	dir, ok := node.(*Dir)
-	if !ok {
-		// We need to look in a directory, but found a file
-		return nil
-	}
-	node, err = dir.Stat(remote)
+	node1, err = node.Stat(remote)
 	fs.Debugf(vfs.f, "Node path %v", node.Path())
 	return nil
 }
