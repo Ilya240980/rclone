@@ -323,7 +323,7 @@ func (vfs *VFS) SetCacheMode(cacheMode vfscommon.CacheMode) {
 	vfs.cache = nil
 	if cacheMode > vfscommon.CacheModeOff {
 		ctx, cancel := context.WithCancel(context.Background())
-		cache, err := vfscache.New(ctx, vfs.f, &vfs.Opt, vfs.AddVirtual, vfs.Root) // FIXME pass on context or get from Opt?
+		cache, err := vfscache.New(ctx, vfs.f, &vfs.Opt, vfs.AddVirtual, vfs.RootPath) // FIXME pass on context or get from Opt?
 		if err != nil {
 			fs.Errorf(nil, "Failed to create vfs cache - disabling: %v", err)
 			vfs.Opt.CacheMode = vfscommon.CacheModeOff
@@ -424,6 +424,12 @@ func (vfs *VFS) Root() (*Dir, error) {
 	// fs.Debugf(vfs.f, "Root()")
 	return vfs.root, nil
 }
+
+// Root returns the root node
+func (vfs *VFS) RootPath() error {
+	return vfs.root.Path(), nil
+}
+
 
 var inodeCount atomic.Uint64
 
