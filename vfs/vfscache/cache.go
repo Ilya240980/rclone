@@ -51,6 +51,7 @@ type Cache struct {
 	hashOption *fs.HashesOption     // corresponding OpenOption
 	writeback  *writeback.WriteBack // holds Items for writeback
 	avFn       AddVirtualFn         // if set, can be called to add dir entries
+	dvFn       DelVirtualFn         // delete dir entries		
 
 	mu            sync.Mutex       // protects the following variables
 	cond          sync.Cond        // cond lock for synchronous cache cleaning
@@ -72,11 +73,13 @@ type Cache struct {
 // go into the directory tree.
 type AddVirtualFn func(remote string, size int64, isDir bool) error
 
+type DelVirtualFn func(remote string) error
+
 // New creates a new cache hierarchy for fremote
 //
 // This starts background goroutines which can be cancelled with the
 // context passed in.
-func New(ctx context.Context, fremote fs.Fs, opt *vfscommon.Options, avFn AddVirtualFn) (*Cache, error) {
+func New(ctx context.Context, fremote fs.Fs, opt *vfscommon.Options, avFn AddVirtualFn, dvFn DelVirtualFn) (*Cache, error) {
 	// Get cache root path.
 	// We need it in two variants: OS path as an absolute path with UNC prefix,
 	// OS-specific path separators, and encoded with OS-specific encoder. Standard path
@@ -127,6 +130,7 @@ func New(ctx context.Context, fremote fs.Fs, opt *vfscommon.Options, avFn AddVir
 		hashOption: hashOption,
 		writeback:  writeback.New(ctx, opt),
 		avFn:       avFn,
+		dvFn:       dvFn,
 	}
 
 	// load in the cache and metadata off disk
@@ -900,3 +904,9 @@ func (c *Cache) AddVirtual(remote string, size int64, isDir bool) error {
 	return c.avFn(remote, size, isDir)
 }
 
+func (c *Cache) DelVirtual(remote string) error {
+	if c.dvFn == nil {
+		return errors.New("no DelVirtual function registered")
+	}
+	return c.dvFn(remote)
+}
