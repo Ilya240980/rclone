@@ -432,8 +432,8 @@ func (vfs *VFS) RootPath(remote string) (err error) {
 	//if err != nil {
 	//	fs.Errorf(vfs.f, "Delete file failed: %v", err)      	
 	//}	
-	var node1 Node
-	node := vfs.root
+	var node Node
+	node = vfs.root
 	dir, ok := node.(*Dir)
 		if !ok {
 			// We need to look in a directory, but found a file
