@@ -905,5 +905,5 @@ func (c *Cache) AddVirtual(remote string, size int64, isDir bool) error {
 }
 
 func (c *Cache) DelVirtual(remote string) error {
-	return c.dvFn(remote)
+	return c.dvFn()
 }

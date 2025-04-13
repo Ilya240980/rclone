@@ -426,8 +426,8 @@ func (vfs *VFS) Root() (*Dir, error) {
 }
 
 // Root returns the root node
-func (vfs *VFS) RootPath() error {
-	return vfs.root.Path(), nil
+func (vfs *VFS) RootPath() (err error) {
+	return vfs.root.Path()
 }
 
 
