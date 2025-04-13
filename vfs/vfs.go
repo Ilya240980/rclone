@@ -434,7 +434,11 @@ func (vfs *VFS) RootPath(remote string) (err error) {
 	//}	
 	var node1 Node
 	node := vfs.root
-	node1, err = node.Stat(remote)
+	dir, ok := node.(*Dir)
+		if !ok {
+			// We need to look in a directory, but found a file
+		}
+	node, err = dir.Stat(remote)
 	fs.Debugf(vfs.f, "Node path %v", node.Path())
 	return nil
 }
