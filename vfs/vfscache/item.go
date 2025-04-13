@@ -607,12 +607,11 @@ func (item *Item) _store(ctx context.Context, storeFn StoreFn) (err error) {
 				return nil
 			}
 		    if err.Error() == "403 Forbidden" {
-				fs.Infof(item.name, "Remote 403 error")
-			}
-			
+				fs.Infof(item.name, "vfs cache: Remote return 403 error")
+						
 			fs.Infof(item.info, "ERR = %v, type = %T", err, err)
 				
-				fs.Errorf(name, "Remote 403 error response - marking clean to allow cache cleanup: %v", err)
+				fs.Errorf(name, "vfs cache: Remote 403 error response, marking file clean to allow cache cleanup: %v", err)
 				item.info.Dirty = false
 	            err = item._save()
 	            if err != nil {
@@ -620,8 +619,8 @@ func (item *Item) _store(ctx context.Context, storeFn StoreFn) (err error) {
 	            }
 			
 				return nil	
-		//    }		
-		//	return fmt.Errorf("vfs cache: failed to transfer file from cache to remote: %w", err)
+		    }		
+			return fmt.Errorf("vfs cache: failed to transfer file from cache to remote: %w", err)
 		}
 		item.o = o
 		item._updateFingerprint()
