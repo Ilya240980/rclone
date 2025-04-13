@@ -618,6 +618,7 @@ func (item *Item) _store(ctx context.Context, storeFn StoreFn) (err error) {
 				err = item.c.DelVirtual(item.name)
 				if err != nil {
 					return fs.Errorf("Remove: failed to delete virtual dir entry: %w", err)
+				}	
 				return nil	
 		    }		
 			return fmt.Errorf("vfs cache: failed to transfer file from cache to remote: %w", err)
