@@ -427,20 +427,8 @@ func (vfs *VFS) Root() (*Dir, error) {
 
 // Root returns the root node
 func (vfs *VFS) RootPath(remote string) (err error) {
-	fs.Debugf(vfs.f, "File to delete %v", remote)
-	//err:= os.Remove(remote)
-	//if err != nil {
-	//	fs.Errorf(vfs.f, "Delete file failed: %v", err)      	
-	//}	
-	node, err := vfs.Stat(remote)
-	if err != nil {
-		fs.Errorf(vfs.f, "Get Node file failed: %v", err)
-	}
-	if node.IsFile() {
-		fs.Errorf(vfs.f, "Node is the file")
-	}
-	
-	fs.Debugf(vfs.f, "Node path %v", node.Path())
+	fs.Debugf(vfs.f, "Refresh VFS")
+	go vfs.refresh()
 	return nil
 }
 
