@@ -614,7 +614,6 @@ func (item *Item) _store(ctx context.Context, storeFn StoreFn) (err error) {
 	            if err != nil {
 		            fs.Errorf(item.name, "vfs cache: failed to write metadata file: %v", err)
 	            }
-			
 				return nil	
 		    }		
 			return fmt.Errorf("vfs cache: failed to transfer file from cache to remote: %w", err)
