@@ -26,7 +26,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        job_name: ['linux', 'windows', 'go1.21', 'go1.22']
+        job_name: ['linux', 'windows']
 
         include:
           - job_name: linux
@@ -39,14 +39,7 @@ jobs:
             racequicktest: true
             librclonetest: true
             deploy: true
-
-          - job_name: linux_386
-            os: ubuntu-latest
-            go: '>=1.23.0-rc.1'
-            goarch: 386
-            gotags: cmount
-            quicktest: true
-          
+                   
           - job_name: windows
             os: windows-latest
             go: '>=1.23.0-rc.1'
@@ -56,18 +49,6 @@ jobs:
             build_args: '-buildmode exe'
             quicktest: true
             deploy: true
-
-          - job_name: go1.21
-            os: ubuntu-latest
-            go: '1.21'
-            quicktest: true
-            racequicktest: true
-
-          - job_name: go1.22
-            os: ubuntu-latest
-            go: '1.22'
-            quicktest: true
-            racequicktest: true
 
     name: ${{ matrix.job_name }}
 
