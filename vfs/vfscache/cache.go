@@ -97,7 +97,6 @@ func New(ctx context.Context, fremote fs.Fs, opt *vfscommon.Options, avFn AddVir
 	}
 	relativeDirPath = fremote.Name() + "/" + relativeDirPath
 	relativeDirOSPath := toOSPath(relativeDirPath)
-	fs.Debugf(fremote, "Path to remote %q", relativeDirOSPath)
 	// Create cache root dirs
 	var dataOSPath, metaOSPath string
 	if dataOSPath, metaOSPath, err = createRootDirs(parentOSPath, relativeDirOSPath); err != nil {
