@@ -607,7 +607,7 @@ func (item *Item) _store(ctx context.Context, storeFn StoreFn) (err error) {
 				return nil
 			}
 		    if err.Error() == "403 Forbidden" {
-				fs.Errorf(item.c.fremote.Name(), "Remote return 403 error")
+				fs.Errorf(item.c.fremote.Name(), "%v: Remote return 403 error", item.name)
 			//	fs.Errorf(name, "vfs cache: Remote 403 error response, marking file clean to allow cache cleanup: %v", err)
 				item.info.Dirty = false
 	            err = item._save()
