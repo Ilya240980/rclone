@@ -43,6 +43,9 @@ func rcBisync(ctx context.Context, in rc.Params) (out rc.Params, err error) {
 	if opt.Resync, err = in.GetBool("resync"); rc.NotErrParamNotFound(err) {
 		return
 	}
+	if opt.ResyncMode, err = in.GetBool("resyncmode"); rc.NotErrParamNotFound(err) {
+		return
+	}
 	if opt.CheckAccess, err = in.GetBool("checkAccess"); rc.NotErrParamNotFound(err) {
 		return
 	}
@@ -67,7 +70,6 @@ func rcBisync(ctx context.Context, in rc.Params) (out rc.Params, err error) {
 	if opt.Recover, err = in.GetBool("recover"); rc.NotErrParamNotFound(err) {
 		return
 	}
-
 	if opt.CheckFilename, err = in.GetString("checkFilename"); rc.NotErrParamNotFound(err) {
 		return
 	}
@@ -81,6 +83,9 @@ func rcBisync(ctx context.Context, in rc.Params) (out rc.Params, err error) {
 		return
 	}
 	if opt.BackupDir2, err = in.GetString("backupdir2"); rc.NotErrParamNotFound(err) {
+		return
+	}
+	if opt.ConflictResolve, err = in.GetString("conflictresolve"); rc.NotErrParamNotFound(err) {
 		return
 	}
 
