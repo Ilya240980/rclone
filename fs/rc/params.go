@@ -12,7 +12,7 @@ import (
 	"time"
 
 	"github.com/rclone/rclone/fs"
-	"github.com/rclone/rclone/cmd"
+	"github.com/rclone/rclone/cmd/bisync"
 )
 
 // Params is the input and output type for the Func
