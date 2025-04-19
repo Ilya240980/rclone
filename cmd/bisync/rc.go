@@ -42,7 +42,7 @@ func GetPrefer(key string, p rc.Params) (Prefer, error) {
 	case "smaller":
 		return PreferSmaller, nil
 	default:
-		return PreferNone, rc.NewErrParamInvalid(errors.New("invalid prefer value for key")),
+		return PreferNone, rc.NewErrParamInvalid(errors.New("invalid prefer value for key"))
 	}
 }
 
