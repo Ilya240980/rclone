@@ -20,6 +20,35 @@ func init() {
 	})
 }
 
+func GetPrefer(key string. p rc.Params) (Prefer, error) {
+	str, err := p.GetString(key)
+	if err != nil {
+		return PreferNone, err
+	}
+
+	switch str {
+	case "none":
+		return PreferNone, nil
+	case "path1":
+		return PreferPath1, nil
+	case "path2":
+		return PreferPath2, nil
+	case "newer":
+		return PreferNewer, nil
+	case "older":
+		return PreferOlder, nil
+	case "larger":
+		return PreferLarger, nil
+	case "smaller":
+		return PreferSmaller, nil
+	default:
+		return PreferNone, ErrParamInvalid{
+			fmt.Errorf("invalid prefer value %q for key %q", str, key),
+		}
+	}
+}
+
+
 func rcBisync(ctx context.Context, in rc.Params) (out rc.Params, err error) {
 	opt := &Options{}
 	octx, ci := fs.AddConfig(ctx)
@@ -43,7 +72,7 @@ func rcBisync(ctx context.Context, in rc.Params) (out rc.Params, err error) {
 	if opt.Resync, err = in.GetBool("resync"); rc.NotErrParamNotFound(err) {
 		return
 	}
-	if opt.ResyncMode, err = in.GetPrefer("resyncmode"); rc.NotErrParamNotFound(err) {
+	if opt.ResyncMode, err = GetPrefer("resyncmode", in); rc.NotErrParamNotFound(err) {
 		return
 	}
 	if opt.CheckAccess, err = in.GetBool("checkAccess"); rc.NotErrParamNotFound(err) {
@@ -85,7 +114,7 @@ func rcBisync(ctx context.Context, in rc.Params) (out rc.Params, err error) {
 	if opt.BackupDir2, err = in.GetString("backupdir2"); rc.NotErrParamNotFound(err) {
 		return
 	}
-	if opt.ConflictResolve, err = in.GetPrefer("conflictresolve"); rc.NotErrParamNotFound(err) {
+	if opt.ConflictResolve, err = GetPrefer("conflictresolve", in); rc.NotErrParamNotFound(err) {
 		return
 	}
 	if opt.ConflictSuffixFlag, err = in.GetString("conflictsuffix"); rc.NotErrParamNotFound(err) {
