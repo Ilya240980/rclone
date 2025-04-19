@@ -46,6 +46,23 @@ func GetPrefer(key string, p rc.Params) (Prefer, error) {
 	}
 }
 
+func GetConflictLoserAction(key string, p rc.Params) (ConflictLoserAction, error) {
+	str, err := p.GetString(key)
+	if err != nil {
+		return ConflictLoserNumber, err
+	}
+
+	switch str {
+	case "num":
+		return ConflictLoserNumber, nil
+	case "pathname":
+		return ConflictLoserPathname, nil
+	case "delete":
+		return ConflictLoserDelete, nil
+	default:
+		return ConflictLoserNumber, rc.NewErrParamInvalid(errors.New("invalid ConflictLoserAction value for key"))
+	}
+}
 
 func rcBisync(ctx context.Context, in rc.Params) (out rc.Params, err error) {
 	opt := &Options{}
@@ -116,6 +133,9 @@ func rcBisync(ctx context.Context, in rc.Params) (out rc.Params, err error) {
 		return
 	}
 	if opt.ConflictSuffixFlag, err = in.GetString("conflictsuffix"); rc.NotErrParamNotFound(err) {
+		return
+	}
+	if opt.ConflictLoser, err = in.GetConflictLoserAction("conflictloser", in); rc.NotErrParamNotFound(err) {
 		return
 	}
 
