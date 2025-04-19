@@ -20,7 +20,7 @@ func init() {
 	})
 }
 
-func GetPrefer(key string. p rc.Params) (Prefer, error) {
+func GetPrefer(key string, p rc.Params) (Prefer, error) {
 	str, err := p.GetString(key)
 	if err != nil {
 		return PreferNone, err
