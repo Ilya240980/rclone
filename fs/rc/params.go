@@ -153,6 +153,35 @@ func (p Params) GetString(key string) (string, error) {
 	return str, nil
 }
 
+func (p Params) GetPrefer(key string) (Prefer, error) {
+	str, err := p.Get(key)
+	if err != nil {
+		return PreferNone, err
+	}
+
+	switch str {
+	case "none":
+		return PreferNone, nil
+	case "path1":
+		return PreferPath1, nil
+	case "path2":
+		return PreferPath2, nil
+	case "newer":
+		return PreferNewer, nil
+	case "older":
+		return PreferOlder, nil
+	case "larger":
+		return PreferLarger, nil
+	case "smaller":
+		return PreferSmaller, nil
+	default:
+		return PreferNone, ErrParamInvalid{
+			fmt.Errorf("invalid prefer value %q for key %q", str, key),
+		}
+	}
+}
+
+
 // GetInt64 gets an int64 parameter from the input
 //
 // If the parameter isn't found then error will be of type
