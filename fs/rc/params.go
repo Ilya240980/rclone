@@ -12,6 +12,7 @@ import (
 	"time"
 
 	"github.com/rclone/rclone/fs"
+	"github.com/rclone/rclone/cmd"
 )
 
 // Params is the input and output type for the Func
