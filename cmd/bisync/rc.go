@@ -135,7 +135,7 @@ func rcBisync(ctx context.Context, in rc.Params) (out rc.Params, err error) {
 	if opt.ConflictSuffixFlag, err = in.GetString("conflictsuffix"); rc.NotErrParamNotFound(err) {
 		return
 	}
-	if opt.ConflictLoser, err = in.GetConflictLoserAction("conflictloser", in); rc.NotErrParamNotFound(err) {
+	if opt.ConflictLoser, err = GetConflictLoserAction("conflictloser", in); rc.NotErrParamNotFound(err) {
 		return
 	}
 
