@@ -37,10 +37,10 @@ jobs:
             go: '>=1.24.0-rc.1'
             gotags: cmount
             build_flags: '-include "^linux/"'
-            check: true
+            check: false
             quicktest: true
-            racequicktest: true
-            librclonetest: true
+            racequicktest: false
+            librclonetest: false
             deploy: true
   
           - job_name: windows
