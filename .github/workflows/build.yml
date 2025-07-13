@@ -147,6 +147,10 @@ jobs:
       - name: Deploy built binaries
         env:
           GH_TOKEN: ${{ github.token }}
+         - name: Deploy built binaries
+        shell: bash
         run: |
+          if [[ "${{ matrix.os }}" == "ubuntu-latest" ]]; then make release_dep_linux ; fi
+          make ci_beta
           make upload_github
   
