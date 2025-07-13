@@ -146,8 +146,9 @@ jobs:
 
       - name: Deploy built binaries
         run: |
-          mkdir build
-          make tarball
+          pwd
+          ls -l
+          ls -l build/
 
       - name: Upload to github
         env:
