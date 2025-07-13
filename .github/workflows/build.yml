@@ -146,6 +146,7 @@ jobs:
 
       - name: Deploy built binaries
         run: |
+          mkdir build
           make tarball
 
       - name: Upload to github
