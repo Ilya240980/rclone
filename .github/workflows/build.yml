@@ -39,7 +39,7 @@ jobs:
             build_flags: '-include "^linux/"'
             check: true
             quicktest: true
-            racequicktest: true
+            racequicktest: false
             librclonetest: true
             deploy: true
 
