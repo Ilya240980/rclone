@@ -29,7 +29,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        job_name: ['linux', 'windows']
+        job_name: ['linux']
 
         include:
           - job_name: linux
@@ -146,9 +146,9 @@ jobs:
 
       - name: Deploy built binaries
         run: |
-          pwd
-          ls -l
-          ls -l build/
+          mkdir build
+          tar -czf build/rclone.tgz rclone
+          
 
       - name: Upload to github
         env:
